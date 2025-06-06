@@ -2,6 +2,8 @@ use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 use std::fs; // 用于读取文件
 
+use std::thread;
+
 // 定义一个简单的请求处理函数，用于解析和响应
 fn handle_connection(mut stream: TcpStream) {
     // 1. 读取请求
@@ -45,13 +47,16 @@ fn handle_connection(mut stream: TcpStream) {
 }
 
 fn main() {
-    // 监听本地 7878 端口
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
-    println!("服务器已启动，监听 127.0.0.1:7878");
 
-    // 循环接收连接
+    println!("Multi-threaded server listening on 127.0.0.1:7878");
+
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+
+        // 为每个连接创建一个新线程
+        thread::spawn(move || { // `move` 关键字将 `stream` 的所有权移动到新线程中
+            handle_connection(stream);
+        });
     }
 }
